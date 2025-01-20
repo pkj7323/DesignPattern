@@ -33,7 +33,7 @@ public:
 	}
 };
 
-class TurkeyAdapter : public Duck, public Turkey
+class TurkeyAdapter : public Duck, public WildTurkey
 {
 public:
 	void quack() override
@@ -44,12 +44,8 @@ public:
 	{
 		for (int i = 0; i < 5; i++)
 		{
-			std::cout << "I'm flying a short distance" << std::endl;
+			WildTurkey::fly();
 		}
-	}
-	void gobble() override
-	{
-		std::cout << "Gobble gobble" << std::endl;
 	}
 
 };
