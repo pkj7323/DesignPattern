@@ -2,6 +2,7 @@
 class StreamingPlayer
 {
 	std::string name;
+	std::string movie;
 public:
 	StreamingPlayer(std::string name)
 	{
@@ -15,13 +16,15 @@ public:
 	{
 		std::cout << "Streaming player off" << std::endl;
 	}
-	void play(std::string movie)
+	void play(const std::string& movie)
 	{
-		std::cout << "Streaming player playing " << movie << std::endl;
+		std::cout << "Streaming player playing " << "\"" << movie << "\"" << std::endl;
+		this->movie = movie;
 	}
 	void stop()
 	{
-		std::cout << "Streaming player stopped" << std::endl;
+		std::cout << "Streaming player stopped " << "\"" << movie << "\"" << std::endl;
+		this->movie = "";
 	}
 	friend std::ostream& operator<<(std::ostream& os, const StreamingPlayer& player)
 	{
