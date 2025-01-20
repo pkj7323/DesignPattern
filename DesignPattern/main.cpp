@@ -33,21 +33,25 @@ public:
 	}
 };
 
-class TurkeyAdapter : public Duck
+class TurkeyAdapter : public Duck, public Turkey
 {
-	Turkey* turkey;
 public:
-	TurkeyAdapter(Turkey* turkey) {
-		this->turkey = turkey;
+	void quack() override
+	{
+		gobble();
 	}
-	void quack() {
-		turkey->gobble();
-	}
-	void fly() {
-		for (int i = 0; i < 5; i++) {//turkey can fly only short distance
-			turkey->fly();
+	void fly() override
+	{
+		for (int i = 0; i < 5; i++)
+		{
+			std::cout << "I'm flying a short distance" << std::endl;
 		}
 	}
+	void gobble() override
+	{
+		std::cout << "Gobble gobble" << std::endl;
+	}
+
 };
 void testduck(Duck* duck)
 {
@@ -58,7 +62,7 @@ void main()
 {
 	MallardDuck* duck = new MallardDuck();
 	WildTurkey* turkey = new WildTurkey();
-	Duck* turkeyAdapter = new TurkeyAdapter(turkey);
+	Duck* turkeyAdapter = new TurkeyAdapter();
 	std::cout << "The Turkey says..." << std::endl;
 	turkey->gobble();
 	turkey->fly();
