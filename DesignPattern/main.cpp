@@ -12,7 +12,7 @@ public:
 		std::cout << "Pouring into cup" << std::endl;
 	}
 };
-class Tea
+class Tea : public caffeineBeverage
 {
 public:
 	void prepareRecipe()
@@ -22,24 +22,16 @@ public:
 		pourInCup();
 		addLemon();
 	}
-	void boilWater()
-	{
-		std::cout << "Boiling water" << std::endl;
-	}
 	void steepTeaBag()
 	{
 		std::cout << "Steeping the tea" << std::endl;
-	}
-	void pourInCup()
-	{
-		std::cout << "Pouring into cup" << std::endl;
 	}
 	void addLemon()
 	{
 		std::cout << "Adding Lemon" << std::endl;
 	}
 };
-class Coffee
+class Coffee : public caffeineBeverage
 {
 public:
 	void prepareRecipe()
@@ -49,17 +41,9 @@ public:
 		pourInCup();
 		addSugarAndMilk();
 	}
-	void boilWater()
-	{
-		std::cout << "Boiling water" << std::endl;
-	}
 	void brewCoffeeGrinds()
 	{
 		std::cout << "Dripping Coffee through filter" << std::endl;
-	}
-	void pourInCup()
-	{
-		std::cout << "Pouring into cup" << std::endl;
 	}
 	void addSugarAndMilk()
 	{
