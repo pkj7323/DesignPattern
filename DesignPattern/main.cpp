@@ -1,5 +1,17 @@
 #include <iostream>
-
+class caffeineBeverage
+{
+public:
+	virtual void prepareRecipe() = 0;
+	void boilWater()
+	{
+		std::cout << "Boiling water" << std::endl;
+	}
+	void pourInCup()
+	{
+		std::cout << "Pouring into cup" << std::endl;
+	}
+};
 class Tea
 {
 public:
