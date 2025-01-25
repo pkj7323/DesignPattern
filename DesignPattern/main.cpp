@@ -27,7 +27,33 @@ public:
 		std::cout << "Adding Lemon" << std::endl;
 	}
 };
-
+class Coffee
+{
+public:
+	void prepareRecipe()
+	{
+		boilWater();
+		brewCoffeeGrinds();
+		pourInCup();
+		addSugarAndMilk();
+	}
+	void boilWater()
+	{
+		std::cout << "Boiling water" << std::endl;
+	}
+	void brewCoffeeGrinds()
+	{
+		std::cout << "Dripping Coffee through filter" << std::endl;
+	}
+	void pourInCup()
+	{
+		std::cout << "Pouring into cup" << std::endl;
+	}
+	void addSugarAndMilk()
+	{
+		std::cout << "Adding Sugar and Milk" << std::endl;
+	}
+};
 
 
 
