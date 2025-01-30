@@ -36,42 +36,43 @@ public:
 		return vegetarian;
 	}
 };
+
+template <typename T>
 class Iterator
 {
 public:
 	virtual bool hasNext() = 0;
-	virtual MenuItem next() = 0;
+	virtual T next() = 0;
 };
-
-class PancakeHouseMenuIterator : public Iterator
+template <typename T>
+class PancakeHouseMenuIterator : public Iterator<T>
 {
-	std::vector<MenuItem> menuItems;
-	size_t position = 0;
+	typename std::vector<T>::const_iterator current;
+	typename std::vector<T>::const_iterator end;
 public:
-	PancakeHouseMenuIterator(std::vector<MenuItem> menuItems)
+	PancakeHouseMenuIterator(const std::vector<T>& v)
 	{
-		this->menuItems = menuItems;
-	}
-	MenuItem next() override
-	{
-		MenuItem menuItem = menuItems[position];
-		position++;
-		return menuItem;
+		current = v.begin();
+		end = v.end();
 	}
 	bool hasNext() override
 	{
-		if (position >= menuItems.size() || menuItems[position].getName().empty())
-		{
-			return false;
-		}
-		else
-		{
-			return true;
-		}
+		return current != end;
+	}
+	T next() override
+	{
+		return *current++;
 	}
 };
 
-class PancakeHouseMenu
+class Menu
+{
+public:
+	virtual ~Menu()
+	= default;
+	virtual Iterator<MenuItem>* createIterator() const = 0;
+};
+class PancakeHouseMenu : public Menu
 {
 	std::vector<MenuItem> menuItems;
 public:
@@ -87,13 +88,13 @@ public:
 		MenuItem menuItem(name, description, vegetarian, price);
 		menuItems.push_back(menuItem);
 	}
-	Iterator* createIterator() const
+	Iterator<MenuItem>* createIterator() const override
 	{
-		return new PancakeHouseMenuIterator(menuItems);
+		return new PancakeHouseMenuIterator<MenuItem>(menuItems);
 	}
 };
 #define MAX_ITEMS 6
-class DinerMenuIterator : public Iterator
+class DinerMenuIterator : public Iterator<MenuItem>
 {
 	MenuItem* menuItems;
 	int position = 0;
@@ -120,7 +121,7 @@ public:
 		}
 	}
 };
-class DinerMenu
+class DinerMenu : public Menu
 {
 	int numberOfItems = 0;
 	MenuItem* menuItems;
@@ -132,6 +133,10 @@ public:
 		addItem("BLT", "Bacon with lettuce & tomato on whole wheat", false, 2.99);
 		addItem("Soup of the day", "Soup of the day, with a side of potato salad", false, 3.29);
 		addItem("Hotdog", "A hot dog, with saurkraut, relish, onions, topped with cheese", false, 3.05);
+	}
+	~DinerMenu() override
+	{
+		delete[] menuItems;
 	}
 	void addItem(const std::string& name, const std::string& description, bool vegetarian, double price)
 	{
@@ -146,7 +151,7 @@ public:
 			numberOfItems++;
 		}
 	}
-	Iterator* createIterator() const
+	Iterator<MenuItem>* createIterator() const override
 	{
 		return new DinerMenuIterator(menuItems);
 	}
@@ -157,24 +162,24 @@ public:
 
 class Waitress
 {
-	PancakeHouseMenu* pancakeHouseMenu;
-	DinerMenu* dinerMenu;
+	Menu* pancakeHouseMenu;
+	Menu* dinerMenu;
 public:
-	Waitress(PancakeHouseMenu* pancakeHouseMenu, DinerMenu* dinerMenu)
+	Waitress(Menu* pancakeHouseMenu, Menu* dinerMenu)
 	{
 		this->pancakeHouseMenu = pancakeHouseMenu;
 		this->dinerMenu = dinerMenu;
 	}
 	void printMenu()
 	{
-		Iterator* pancakeIterator = pancakeHouseMenu->createIterator();
-		Iterator* dinerIterator = dinerMenu->createIterator();
+		Iterator<MenuItem>* pancakeIterator = pancakeHouseMenu->createIterator();
+		Iterator<MenuItem>* dinerIterator = dinerMenu->createIterator();
 		std::cout << "MENU\n----\nBREAKFAST" << std::endl;
 		printMenu(pancakeIterator);
 		std::cout << "\nLUNCH" << std::endl;
 		printMenu(dinerIterator);
 	}
-	void printMenu(Iterator* iterator)
+	void printMenu(Iterator<MenuItem>* iterator)
 	{
 		while (iterator->hasNext())
 		{
@@ -194,5 +199,8 @@ int main()
 	DinerMenu* dinerMenu = new DinerMenu();
 	Waitress* waitress = new Waitress(pancakeHouseMenu, dinerMenu);
 	waitress->printMenu();
+	delete pancakeHouseMenu;
+	delete dinerMenu;
+	delete waitress;
 	return 0;
 }
