@@ -1,11 +1,47 @@
 #include <iostream>
 #include <map>
 #include <vector>
-#include <stdio.h>
 #include <unordered_map>
 
+class MenuComponent
+{
+public:
+	virtual ~MenuComponent() = default;
+	virtual void add(MenuComponent* menuComponent)
+	{
+		throw std::runtime_error("Unsupported Operation");
+	}
+	virtual void remove(MenuComponent* menuComponent)
+	{
+		throw std::runtime_error("Unsupported Operation");
+	}
+	virtual MenuComponent* getChild(int i)
+	{
+		throw std::runtime_error("Unsupported Operation");
+	}
+	virtual std::string getName()
+	{
+		throw std::runtime_error("Unsupported Operation");
+	}
+	virtual std::string getDescription()
+	{
+		throw std::runtime_error("Unsupported Operation");
+	}
+	virtual double getPrice()
+	{
+		throw std::runtime_error("Unsupported Operation");
+	}
+	virtual bool isVegetarian()
+	{
+		throw std::runtime_error("Unsupported Operation");
+	}
+	virtual void print()
+	{
+		throw std::runtime_error("Unsupported Operation");
+	}
+};
 
-class MenuItem
+class MenuItem : public MenuComponent
 {
 	std::string name;
 	std::string description;
@@ -36,207 +72,74 @@ public:
 	{
 		return vegetarian;
 	}
-};
-
-template <typename T>
-class Iterator
-{
-public:
-	virtual ~Iterator() = default;
-	virtual bool hasNext() = 0;
-	virtual T next() = 0;
-};
-template <typename T>
-class PancakeHouseMenuIterator : public Iterator<T>
-{
-	typename std::vector<T>::const_iterator current;
-	typename std::vector<T>::const_iterator end;
-public:
-	PancakeHouseMenuIterator(const std::vector<T>& v)
+	void print() override
 	{
-		current = v.begin();
-		end = v.end();
-	}
-	bool hasNext() override
-	{
-		return current != end;
-	}
-	T next() override
-	{
-		return *current++;
+		std::cout << " " << getName();
+		if (isVegetarian())
+		{
+			std::cout << "(v)";
+		}
+		std::cout << ", " << getPrice() << std::endl;
+		std::cout << "     -- " << getDescription() << std::endl;
 	}
 };
 
-class Menu
+
+class Menu : public MenuComponent
 {
+	std::vector<MenuComponent*> menuComponents;
+	std::string name;
+	std::string description;
 public:
-	virtual ~Menu()
-	= default;
-	virtual Iterator<MenuItem>* createIterator() const = 0;
-};
-class PancakeHouseMenu : public Menu
-{
-	std::vector<MenuItem> menuItems;
-public:
-	PancakeHouseMenu()
+	Menu(const std::string& name, const std::string& description)
 	{
-		addItem("K&B's Pancake Breakfast", "Pancakes with scrambled eggs, and toast", true, 2.99);
-		addItem("Regular Pancake Breakfast", "Pancakes with fried eggs, sausage", false, 2.99);
-		addItem("Blueberry Pancakes", "Pancakes made with fresh blueberries", true, 3.49);
-		addItem("Waffles", "Waffles, with your choice of blueberries or strawberries", true, 3.59);
+		this->name = name;
+		this->description = description;
 	}
-	void addItem(const std::string& name, const std::string& description, bool vegetarian, double price)
+	void add(MenuComponent* menuComponent) override
 	{
-		MenuItem menuItem(name, description, vegetarian, price);
-		menuItems.push_back(menuItem);
+		menuComponents.push_back(menuComponent);
 	}
-	Iterator<MenuItem>* createIterator() const override
+	void remove(MenuComponent* menuComponent) override
 	{
-		return new PancakeHouseMenuIterator<MenuItem>(menuItems);
+		menuComponents.erase(std::remove(menuComponents.begin(), menuComponents.end(), menuComponent), menuComponents.end());
 	}
-};
-#define MAX_ITEMS 6
-class DinerMenuIterator : public Iterator<MenuItem>
-{
-	MenuItem* menuItems;
-	int position = 0;
-public:
-	DinerMenuIterator(MenuItem* menuItems)
+	MenuComponent* getChild(int i) override
 	{
-		this->menuItems = menuItems;
+		return menuComponents[i];
 	}
-	MenuItem next() override
+	std::string getName() override
 	{
-		MenuItem menuItem = menuItems[position];
-		position++;
-		return menuItem;
+		return name;
 	}
-	bool hasNext() override
+	std::string getDescription() override
 	{
-		if (position >= MAX_ITEMS || menuItems[position].getName().empty())
+		return description;
+	}
+	void print() override
+	{
+		std::cout << std::endl << getName();
+		std::cout << ", " << getDescription() << std::endl;
+		std::cout << "---------------------" << std::endl;
+		for (auto& menuComponent : menuComponents)
 		{
-			return false;
-		}
-		else
-		{
-			return true;
+			menuComponent->print();
 		}
 	}
 };
-class DinerMenu : public Menu
-{
-	int numberOfItems = 0;
-	MenuItem* menuItems;
-public:
-	DinerMenu()
-	{
-		menuItems = new MenuItem[MAX_ITEMS];
-		addItem("Vegetarian BLT", "(Fakin') Bacon with lettuce & tomato on whole wheat", true, 2.99);
-		addItem("BLT", "Bacon with lettuce & tomato on whole wheat", false, 2.99);
-		addItem("Soup of the day", "Soup of the day, with a side of potato salad", false, 3.29);
-		addItem("Hotdog", "A hot dog, with saurkraut, relish, onions, topped with cheese", false, 3.05);
-	}
-	~DinerMenu() override
-	{
-		delete[] menuItems;
-	}
-	void addItem(const std::string& name, const std::string& description, bool vegetarian, double price)
-	{
-		MenuItem menuItem(name, description, vegetarian, price);
-		if (numberOfItems >= MAX_ITEMS)
-		{
-			std::cout << "Sorry, menu is full! Can't add item to menu" << std::endl;
-		}
-		else
-		{
-			menuItems[numberOfItems] = menuItem;
-			numberOfItems++;
-		}
-	}
-	Iterator<MenuItem>* createIterator() const override
-	{
-		return new DinerMenuIterator(menuItems);
-	}
-};
-class CafeIterator : public Iterator<MenuItem>
-{
-	std::unordered_map<std::string, MenuItem> menuItems;
-	std::unordered_map<std::string, MenuItem>::const_iterator current;
-	std::unordered_map<std::string, MenuItem>::const_iterator end;
-public:
-	CafeIterator(const std::unordered_map<std::string, MenuItem>& menuItems)
-	{
-		this->menuItems = menuItems;
-		current = this->menuItems.begin();
-		end = this->menuItems.end();
-	}
-	bool hasNext() override
-	{
-		return current != end;
-	}
-	MenuItem next() override
-	{
-		return current++->second;
-	}
-};
-class CafeMenu : public Menu
-{
-	std::unordered_map<std::string, MenuItem> menuItems;
-public:
-	CafeMenu()
-	{
-		addItem("Veggie Burger and Air Fries", "Veggie burger on a whole wheat bun, lettuce, tomato, and fries", true, 3.99);
-		addItem("Soup of the day", "A cup of the soup of the day, with a side salad", false, 3.69);
-		addItem("Burrito", "A large burrito, with whole pinto beans, salsa, guacamole", true, 4.29);
-	}
-	void addItem(const std::string& name, const std::string& description, bool vegetarian, double price)
-	{
-		MenuItem menuItem(name, description, vegetarian, price);
-		menuItems.insert(std::make_pair(name, menuItem));
-	}
-	Iterator<MenuItem>* createIterator() const override
-	{
-		return new CafeIterator(menuItems);
-	}
-};
+
+
+
 
 
 class Waitress
 {
-	Menu* pancakeHouseMenu;
-	Menu* dinerMenu;
-	Menu* cafeMenu;
+	MenuComponent* allMenus;
 public:
-	Waitress(Menu* pancakeHouseMenu, Menu* dinerMenu, Menu* cafeMenu)
-	{
-		this->pancakeHouseMenu = pancakeHouseMenu;
-		this->dinerMenu = dinerMenu;
-		this->cafeMenu = cafeMenu;
-	}
+	Waitress(MenuComponent* allMenus) : allMenus{ allMenus } {}
 	void printMenu()
 	{
-		Iterator<MenuItem>* pancakeIterator = pancakeHouseMenu->createIterator();
-		Iterator<MenuItem>* dinerIterator = dinerMenu->createIterator();
-		Iterator<MenuItem>* cafeIterator = cafeMenu->createIterator();
-		std::cout << "MENU\n----\nBREAKFAST" << std::endl;
-		printMenu(pancakeIterator);
-		std::cout << "\nLUNCH" << std::endl;
-		printMenu(dinerIterator);
-		std::cout << "\nDINNER" << std::endl;
-		printMenu(cafeIterator);
-		delete pancakeIterator;
-		delete dinerIterator;
-		delete cafeIterator;
-	}
-	void printMenu(Iterator<MenuItem>* iterator)
-	{
-		while (iterator->hasNext())
-		{
-			MenuItem menuItem = iterator->next();
-			std::cout << menuItem.getName() << ", ";
-			std::cout << menuItem.getPrice() << " -- ";
-			std::cout << menuItem.getDescription() << std::endl;
-		}
+		allMenus->print();
 	}
 
 
@@ -244,14 +147,125 @@ public:
 
 int main()
 {
-	PancakeHouseMenu* pancakeHouseMenu = new PancakeHouseMenu();
-	DinerMenu* dinerMenu = new DinerMenu();
-	CafeMenu* cafeMenu = new CafeMenu();
-	Waitress* waitress = new Waitress(pancakeHouseMenu, dinerMenu, cafeMenu);
+	MenuComponent* pancakeHouseMenu = new Menu("PANCAKE HOUSE MENU", "Breakfast");
+	MenuComponent* dinerMenu = new Menu("DINER MENU", "Lunch");
+	MenuComponent* cafeMenu = new Menu("CAFE MENU", "Dinner");
+	MenuComponent* dessertMenu = new Menu("DESSERT MENU", "Dessert of course!");
+	MenuComponent* allMenus = new Menu("ALL MENUS", "All menus combined");
+	MenuComponent* coffeeMenu = new Menu("COFFEE MENU", "Stuff to go with your afternoon coffee");
+
+	allMenus->add(pancakeHouseMenu);
+	allMenus->add(dinerMenu);
+	allMenus->add(cafeMenu);
+
+	pancakeHouseMenu->add(new MenuItem(
+		"K&B's Pancake Breakfast",
+		"Pancakes with scrambled eggs and toast",
+		true,
+		2.99));
+	pancakeHouseMenu->add(new MenuItem(
+		"Regular Pancake Breakfast",
+		"Pancakes with fried eggs, sausage",
+		false,
+		2.99));
+	pancakeHouseMenu->add(new MenuItem(
+		"Blueberry Pancakes",
+		"Pancakes made with fresh blueberries, and blueberry syrup",
+		true,
+		3.49));
+	pancakeHouseMenu->add(new MenuItem(
+		"Waffles",
+		"Waffles with your choice of blueberries or strawberries",
+		true,
+		3.59));
+
+	dinerMenu->add(new MenuItem(
+		"Vegetarian BLT",
+		"(Fakin') Bacon with lettuce & tomato on whole wheat",
+		true,
+		2.99));
+	dinerMenu->add(new MenuItem(
+		"BLT",
+		"Bacon with lettuce & tomato on whole wheat",
+		false,
+		2.99));
+	dinerMenu->add(new MenuItem(
+		"Soup of the day",
+		"A bowl of the soup of the day, with a side of potato salad",
+		false,
+		3.29));
+	dinerMenu->add(new MenuItem(
+		"Hot Dog",
+		"A hot dog, with saurkraut, relish, onions, topped with cheese",
+		false,
+		3.05));
+	dinerMenu->add(new MenuItem(
+		"Steamed Veggies and Brown Rice",
+		"Steamed vegetables over brown rice",
+		true,
+		3.99));
+
+	dinerMenu->add(new MenuItem(
+		"Pasta",
+		"Spaghetti with marinara sauce, and a slice of sourdough bread",
+		true,
+		3.89));
+
+	dinerMenu->add(dessertMenu);
+
+	dessertMenu->add(new MenuItem(
+		"Apple Pie",
+		"Apple pie with a flakey crust, topped with vanilla icecream",
+		true,
+		1.59));
+
+	dessertMenu->add(new MenuItem(
+		"Cheesecake",
+		"Creamy New York cheesecake, with a chocolate graham crust",
+		true,
+		1.99));
+	dessertMenu->add(new MenuItem(
+		"Sorbet",
+		"A scoop of raspberry and a scoop of lime",
+		true,
+		1.89));
+
+	cafeMenu->add(new MenuItem(
+		"Veggie Burger and Air Fries",
+		"Veggie burger on a whole wheat bun, lettuce, tomato, and fries",
+		true,
+		3.99));
+	cafeMenu->add(new MenuItem(
+		"Soup of the day",
+		"A cup of the soup of the day, with a side salad",
+		false,
+		3.69));
+	cafeMenu->add(new MenuItem(
+		"Burrito",
+		"A large burrito, with whole pinto beans, salsa, guacamole",
+		true,
+		4.29));
+
+	cafeMenu->add(coffeeMenu);
+
+	coffeeMenu->add(new MenuItem(
+		"Coffee Cake",
+		"Crumbly cake topped with cinnamon and walnuts",
+		true,
+		1.59));
+	coffeeMenu->add(new MenuItem(
+		"Bagel",
+		"Flavors include sesame, poppyseed, cinnamon raisin, pumpkin",
+		false,
+		0.69));
+	coffeeMenu->add(new MenuItem(
+		"Biscotti",
+		"Three almond or hazelnut biscotti cookies",
+		true,
+		0.89));
+
+	Waitress* waitress = new Waitress(allMenus);
+
 	waitress->printMenu();
-	delete waitress;
-	delete cafeMenu;
-	delete dinerMenu;
-	delete pancakeHouseMenu;
 	return 0;
 }
