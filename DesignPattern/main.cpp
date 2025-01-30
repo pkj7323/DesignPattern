@@ -2,7 +2,7 @@
 #include <map>
 #include <vector>
 #include <stdio.h>
-
+#include <unordered_map>
 
 
 class MenuItem
@@ -42,6 +42,7 @@ template <typename T>
 class Iterator
 {
 public:
+	virtual ~Iterator() = default;
 	virtual bool hasNext() = 0;
 	virtual T next() = 0;
 };
@@ -157,10 +158,30 @@ public:
 		return new DinerMenuIterator(menuItems);
 	}
 };
-
-class CafeMenu
+class CafeIterator : public Iterator<MenuItem>
 {
-	std::map<std::string, MenuItem> menuItems;
+	std::unordered_map<std::string, MenuItem> menuItems;
+	std::unordered_map<std::string, MenuItem>::const_iterator current;
+	std::unordered_map<std::string, MenuItem>::const_iterator end;
+public:
+	CafeIterator(const std::unordered_map<std::string, MenuItem>& menuItems)
+	{
+		this->menuItems = menuItems;
+		current = this->menuItems.begin();
+		end = this->menuItems.end();
+	}
+	bool hasNext() override
+	{
+		return current != end;
+	}
+	MenuItem next() override
+	{
+		return current++->second;
+	}
+};
+class CafeMenu : public Menu
+{
+	std::unordered_map<std::string, MenuItem> menuItems;
 public:
 	CafeMenu()
 	{
@@ -173,9 +194,9 @@ public:
 		MenuItem menuItem(name, description, vegetarian, price);
 		menuItems.insert(std::make_pair(name, menuItem));
 	}
-	std::map<std::string, MenuItem> getMenuItems()
+	Iterator<MenuItem>* createIterator() const override
 	{
-		return menuItems;
+		return new CafeIterator(menuItems);
 	}
 };
 
@@ -184,20 +205,28 @@ class Waitress
 {
 	Menu* pancakeHouseMenu;
 	Menu* dinerMenu;
+	Menu* cafeMenu;
 public:
-	Waitress(Menu* pancakeHouseMenu, Menu* dinerMenu)
+	Waitress(Menu* pancakeHouseMenu, Menu* dinerMenu, Menu* cafeMenu)
 	{
 		this->pancakeHouseMenu = pancakeHouseMenu;
 		this->dinerMenu = dinerMenu;
+		this->cafeMenu = cafeMenu;
 	}
 	void printMenu()
 	{
 		Iterator<MenuItem>* pancakeIterator = pancakeHouseMenu->createIterator();
 		Iterator<MenuItem>* dinerIterator = dinerMenu->createIterator();
+		Iterator<MenuItem>* cafeIterator = cafeMenu->createIterator();
 		std::cout << "MENU\n----\nBREAKFAST" << std::endl;
 		printMenu(pancakeIterator);
 		std::cout << "\nLUNCH" << std::endl;
 		printMenu(dinerIterator);
+		std::cout << "\nDINNER" << std::endl;
+		printMenu(cafeIterator);
+		delete pancakeIterator;
+		delete dinerIterator;
+		delete cafeIterator;
 	}
 	void printMenu(Iterator<MenuItem>* iterator)
 	{
@@ -217,10 +246,12 @@ int main()
 {
 	PancakeHouseMenu* pancakeHouseMenu = new PancakeHouseMenu();
 	DinerMenu* dinerMenu = new DinerMenu();
-	Waitress* waitress = new Waitress(pancakeHouseMenu, dinerMenu);
+	CafeMenu* cafeMenu = new CafeMenu();
+	Waitress* waitress = new Waitress(pancakeHouseMenu, dinerMenu, cafeMenu);
 	waitress->printMenu();
-	delete pancakeHouseMenu;
-	delete dinerMenu;
 	delete waitress;
+	delete cafeMenu;
+	delete dinerMenu;
+	delete pancakeHouseMenu;
 	return 0;
 }
