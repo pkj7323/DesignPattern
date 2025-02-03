@@ -1,105 +1,212 @@
 #include <iostream>
+
+
+class State
+{
+public:
+	virtual void insertQuarter() = 0;
+	virtual void ejectQuarter() = 0;
+	virtual void turnCrank() = 0;
+	virtual void dispense() = 0;
+};
 class GumballMachine
 {
-	static constexpr int SOLD_OUT = 0;
-	static constexpr int NO_QUARTER = 1;
-	static constexpr int HAS_QUARTER = 2;
-	static constexpr int SOLD = 3;
+	State* sold_out_state;
+	State* no_quarter_state;
+	State* has_quarter_state;
+	State* sold_state;
 
-	int state = SOLD_OUT;
+	State* state = sold_out_state;
 	int count = 0;
 public:
-	GumballMachine(int count) : count(count)
+	class SoldOutState : public State
 	{
-		if (count > 0)
-			state = NO_QUARTER;
-	}
-
-    void insertQuarter()
-	{
-		if (state == HAS_QUARTER)
-			std::cout << "동전을 이미 넣었습니다\n";
-		else if (state == NO_QUARTER)
+		GumballMachine& gumballMachine;
+	public:
+		SoldOutState(GumballMachine& gumballMachine) : gumballMachine(gumballMachine) {}
+		void insertQuarter() override
 		{
-			state = HAS_QUARTER;
-			std::cout << "동전을 넣었습니다\n";
+			std::cout << "매진되었습니다\n";
 		}
-		else if (state == SOLD_OUT)
-			std::cout << "매진되었습니다. 동전을 넣을 수 없습니다\n";
-		else if (state == SOLD)
-			std::cout << "잠시만 기다려 주세요. 알맹이가 나가고 있습니다\n";
-    }
+		void ejectQuarter() override
+		{
+			std::cout << "동전을 넣지 않았습니다\n";
+		}
+		void turnCrank() override
+		{
+			std::cout << "매진되었습니다\n";
+		}
+		void dispense() override
+		{
+			std::cout << "매진되었습니다\n";
+		}
+	};
 
-    void ejectQuarter()
-    {
-		if (state == HAS_QUARTER)
+	class NoQuarterState : public State
+	{
+		GumballMachine& gumballMachine;
+	public:
+		NoQuarterState(GumballMachine& gumballMachine) : gumballMachine(gumballMachine) {}
+		void insertQuarter() override
+		{
+			std::cout << "동전을 넣었습니다\n";
+			gumballMachine.setState(gumballMachine.getHasQuarterState());
+		}
+		void ejectQuarter() override
+		{
+			std::cout << "동전을 넣지 않았습니다\n";
+		}
+		void turnCrank() override
+		{
+			std::cout << "동전을 넣어주세요\n";
+		}
+		void dispense() override
+		{
+			std::cout << "동전을 넣어주세요\n";
+		}
+	};
+
+	class HasQuarterState : public State
+	{
+		GumballMachine& gumballMachine;
+	public:
+		HasQuarterState(GumballMachine& gumballMachine) : gumballMachine(gumballMachine) {}
+		void insertQuarter() override
+		{
+			//이상태에서는 부적절한 메소드
+			std::cout << "이미 동전이 있습니다\n";
+		}
+		void ejectQuarter() override
 		{
 			std::cout << "동전이 반환됩니다\n";
-			state = NO_QUARTER;
+			gumballMachine.setState(gumballMachine.getNoQuarterState());
 		}
-		else if (state == NO_QUARTER)
-			std::cout << "동전을 넣지 않았습니다\n";
-		else if (state == SOLD)
-			std::cout << "이미 알맹이를 뽑으셨습니다\n";
-		else if (state == SOLD_OUT)
-			std::cout << "동전을 넣지 않았습니다. 반환할 동전이 없습니다\n";
-    }
-
-    void turnCrank()
-    {
-		if (state == SOLD)
-			std::cout << "손잡이를 두 번 돌려도 알맹이가 더 나오지 않습니다\n";
-		else if (state == NO_QUARTER)
-			std::cout << "동전을 넣어주세요\n";
-		else if (state == SOLD_OUT)
-			std::cout << "매진되었습니다\n";
-		else if (state == HAS_QUARTER)
+		void turnCrank() override
 		{
-			std::cout << "손잡이를 돌리셨습니다...\n";
-			state = SOLD;
-			dispense();
+			std::cout << "손잡이를 돌렸습니다\n";
+			gumballMachine.setState(gumballMachine.getSoldState());
 		}
-    }
-
-    void dispense()
-    {
-		if (state == SOLD)
+		void dispense() override
 		{
-			std::cout << "알맹이가 나옵니다\n";
-			count--;
-			if (count == 0)
+			//이상태에서는 이 메소드도 이상태에선 부적절함
+			std::cout << "알맹이가 나갑니다\n";
+		}
+	};
+
+	class SoldState : public State
+	{
+		GumballMachine& gumballMachine;
+	public:
+		SoldState(GumballMachine& gumballMachine) : gumballMachine(gumballMachine) {}
+		void insertQuarter() override
+		{
+			std::cout << "잠깐만 기다려주세요\n";
+			//부적절
+		}
+		void ejectQuarter() override
+		{
+			std::cout << "이미 알맹이를 뽑았습니다\n";
+			//부적절
+		}
+		void turnCrank() override
+		{
+			std::cout << "손잡이를 한번만 돌려주세요\n";
+			//부적절
+		}
+
+		void dispense() override
+		{
+			gumballMachine.release();
+			if (gumballMachine.count > 0)
 			{
-				std::cout << "알맹이가 다 떨어졌습니다\n";
-				state = SOLD_OUT;
+				gumballMachine.setState(gumballMachine.getNoQuarterState());
 			}
 			else
-				state = NO_QUARTER;
+			{
+				std::cout << "더 이상 알맹이가 없습니다\n";
+				gumballMachine.setState(gumballMachine.getSoldOutState());
+			}
 		}
-		else if (state == NO_QUARTER)
-			std::cout << "동전을 넣어주세요\n";
-		else if (state == SOLD_OUT)
-			std::cout << "알맹이가 없습니다\n";
-		else if (state == HAS_QUARTER)
-			std::cout << "알맹이가 나올 수 없습니다\n";
-    }
-	
+	};
+
+	GumballMachine(int count) : count(count)
+	{
+		sold_out_state = new SoldOutState(*this);
+		no_quarter_state = new NoQuarterState(*this);
+		has_quarter_state = new HasQuarterState(*this);
+		sold_state = new SoldState(*this);
+		if (count > 0)
+		{
+			state = no_quarter_state;
+		}
+		else
+		{
+			state = sold_out_state;
+		}
+	}
+
+	void insertQuarter()
+	{
+		state->insertQuarter();
+	}
+
+	void ejectQuarter()
+	{
+		state->ejectQuarter();
+	}
+
+	void turnCrank()
+	{
+		state->turnCrank();
+		state->dispense();
+	}
+
+	void dispense()
+	{
+		state->dispense();
+	}
+
 	friend std::ostream& operator<<(std::ostream& os, const GumballMachine& gumballMachine)
 	{
-		std::string state;
-		if (gumballMachine.state == GumballMachine::SOLD_OUT)
-			state = "매진";
-		else if (gumballMachine.state == GumballMachine::NO_QUARTER)
-			state = "동전 없음";
-		else if (gumballMachine.state == GumballMachine::HAS_QUARTER)
-			state = "동전 있음";
-		else if (gumballMachine.state == GumballMachine::SOLD)
-			state = "알맹이 판매중";
 		os << "주식회사 왕뽑기\n";
 		os << "남은 개수: " << gumballMachine.count << "개\n";
-		os << "상태: " << state << "\n\n";
+		os << "상태: " << typeid(*gumballMachine.state).name() << "\n\n";
 		return os;
 	}
+	void setState(State* state)
+	{
+		this->state = state;
+	}
+	void release()
+	{
+		std::cout << "알맹이를 내보고 있습니다.";
+		if (count != 0)
+		{
+			count--;
+		}
+	}
+	State* getSoldOutState() const
+	{
+		return sold_out_state;
+	}
+	State* getNoQuarterState() const
+	{
+		return no_quarter_state;
+	}
+	State* getHasQuarterState() const
+	{
+		return has_quarter_state;
+	}
+	State* getSoldState() const
+	{
+		return sold_state;
+	}
 };
+
+
+
+
+
 
 int main()
 {
