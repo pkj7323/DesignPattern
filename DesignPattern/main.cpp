@@ -82,19 +82,59 @@ public:
 		else if (state == HAS_QUARTER)
 			std::cout << "알맹이가 나올 수 없습니다\n";
     }
+	
+	friend std::ostream& operator<<(std::ostream& os, const GumballMachine& gumballMachine)
+	{
+		std::string state;
+		if (gumballMachine.state == GumballMachine::SOLD_OUT)
+			state = "매진";
+		else if (gumballMachine.state == GumballMachine::NO_QUARTER)
+			state = "동전 없음";
+		else if (gumballMachine.state == GumballMachine::HAS_QUARTER)
+			state = "동전 있음";
+		else if (gumballMachine.state == GumballMachine::SOLD)
+			state = "알맹이 판매중";
+		os << "주식회사 왕뽑기\n";
+		os << "남은 개수: " << gumballMachine.count << "개\n";
+		os << "상태: " << state << "\n\n";
+		return os;
+	}
 };
 
 int main()
 {
 	GumballMachine gumballMachine(5);
+
+	std::cout << gumballMachine;
+
+	gumballMachine.insertQuarter();
+	gumballMachine.turnCrank();
+
+	std::cout << gumballMachine;
+
+	gumballMachine.insertQuarter();
+	gumballMachine.ejectQuarter();
+	gumballMachine.turnCrank();
+
+	std::cout << gumballMachine;
+
+	gumballMachine.insertQuarter();
+	gumballMachine.turnCrank();
+	gumballMachine.insertQuarter();
+	gumballMachine.turnCrank();
+	gumballMachine.ejectQuarter();
+
+	std::cout << gumballMachine;
+
+	gumballMachine.insertQuarter();
 	gumballMachine.insertQuarter();
 	gumballMachine.turnCrank();
 	gumballMachine.insertQuarter();
 	gumballMachine.turnCrank();
 	gumballMachine.insertQuarter();
 	gumballMachine.turnCrank();
-	gumballMachine.insertQuarter();
-	gumballMachine.turnCrank();
+
+	std::cout << gumballMachine;
 
 
 	return 0;
