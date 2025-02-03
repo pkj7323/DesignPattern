@@ -1,4 +1,5 @@
 #include <iostream>
+#include <random>
 
 
 class State
@@ -15,6 +16,7 @@ class GumballMachine
 	State* no_quarter_state;
 	State* has_quarter_state;
 	State* sold_state;
+	State* winnerState;
 
 	State* state = sold_out_state;
 	int count = 0;
@@ -69,6 +71,8 @@ public:
 	class HasQuarterState : public State
 	{
 		GumballMachine& gumballMachine;
+		std::random_device rd;
+		std::mt19937 gen{ rd() };
 	public:
 		HasQuarterState(GumballMachine& gumballMachine) : gumballMachine(gumballMachine) {}
 		void insertQuarter() override
@@ -84,7 +88,16 @@ public:
 		void turnCrank() override
 		{
 			std::cout << "손잡이를 돌렸습니다\n";
-			gumballMachine.setState(gumballMachine.getSoldState());
+			std::uniform_int_distribution<int> dist(0, 9);
+			int winner = dist(gen);
+			if (winner == 0 && gumballMachine.count > 1)
+			{
+				gumballMachine.setState(gumballMachine.getWinnerState());
+			}
+			else
+			{
+				gumballMachine.setState(gumballMachine.getSoldState());
+			}
 		}
 		void dispense() override
 		{
@@ -128,13 +141,53 @@ public:
 			}
 		}
 	};
-
+	class WinnerState : public State
+	{
+		GumballMachine& gumballMachine;
+	public:
+		WinnerState(GumballMachine& gumballMachine) : gumballMachine(gumballMachine) {}
+		void insertQuarter() override
+		{
+			std::cout << "잠깐만 기다려주세요\n";
+		}
+		void ejectQuarter() override
+		{
+			std::cout << "이미 알맹이를 뽑았습니다\n";
+		}
+		void turnCrank() override
+		{
+			std::cout << "손잡이를 한번만 돌려주세요\n";
+		}
+		void dispense() override
+		{
+			std::cout << "축하합니다! 알맹이를 하나 더 받으실 수 있습니다\n";
+			gumballMachine.release();
+			if (gumballMachine.count == 0)
+			{
+				gumballMachine.setState(gumballMachine.getSoldOutState());
+			}
+			else
+			{
+				gumballMachine.release();
+				if (gumballMachine.count > 0)
+				{
+					gumballMachine.setState(gumballMachine.getNoQuarterState());
+				}
+				else
+				{
+					std::cout << "더 이상 알맹이가 없습니다\n";
+					gumballMachine.setState(gumballMachine.getSoldOutState());
+				}
+			}
+		}
+	};
 	GumballMachine(int count) : count(count)
 	{
 		sold_out_state = new SoldOutState(*this);
 		no_quarter_state = new NoQuarterState(*this);
 		has_quarter_state = new HasQuarterState(*this);
 		sold_state = new SoldState(*this);
+		winnerState = new WinnerState(*this);
 		if (count > 0)
 		{
 			state = no_quarter_state;
@@ -201,6 +254,10 @@ public:
 	{
 		return sold_state;
 	}
+	State* getWinnerState() const
+	{
+		return winnerState;
+	}
 };
 
 
@@ -219,23 +276,6 @@ int main()
 
 	std::cout << gumballMachine;
 
-	gumballMachine.insertQuarter();
-	gumballMachine.ejectQuarter();
-	gumballMachine.turnCrank();
-
-	std::cout << gumballMachine;
-
-	gumballMachine.insertQuarter();
-	gumballMachine.turnCrank();
-	gumballMachine.insertQuarter();
-	gumballMachine.turnCrank();
-	gumballMachine.ejectQuarter();
-
-	std::cout << gumballMachine;
-
-	gumballMachine.insertQuarter();
-	gumballMachine.insertQuarter();
-	gumballMachine.turnCrank();
 	gumballMachine.insertQuarter();
 	gumballMachine.turnCrank();
 	gumballMachine.insertQuarter();
