@@ -1,7 +1,6 @@
 #include <iostream>
 #include <random>
 
-
 class State
 {
 public:
