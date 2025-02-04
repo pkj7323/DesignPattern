@@ -253,6 +253,10 @@ public:
 	{
 		return location;
 	}
+	State* getState() const
+	{
+		return state;
+	}
 	void setState(State* state) override
 	{
 		this->state = state;
@@ -287,24 +291,32 @@ public:
 	}
 
 };
-
+class GumballMonitor
+{
+	GumballMachine& gumballMachine;
+public:
+	GumballMonitor(GumballMachine& gumballMachine) : gumballMachine(gumballMachine) {}
+	void report()
+	{
+		std::cout << "Gumball Machine: " << gumballMachine.getLocation() << "\n";
+		std::cout << "Current inventory: " << gumballMachine.getCount() << " gumballs\n";
+		std::cout << "Current state: " << typeid(*gumballMachine.getState()).name() << "\n\n";
+	}
+};
 int main()
 {
-	GumballMachine gumballMachine(5);
+	int count = 0;
+	std::string location;
+	std::cout << "알맹이의 위치를 입력하세요: ";
+	std::cin >> location;
+	std::cout << "알맹이의 개수를 입력하세요: ";
+	std::cin >> count;
+	
+	GumballMachine gumballMachine(location, count);
 
-	std::cout << gumballMachine;
+	GumballMonitor monitor(gumballMachine);
 
-	gumballMachine.insertQuarter();
-	gumballMachine.turnCrank();
-
-	std::cout << gumballMachine;
-
-	gumballMachine.insertQuarter();
-	gumballMachine.turnCrank();
-	gumballMachine.insertQuarter();
-	gumballMachine.turnCrank();
-
-	std::cout << gumballMachine;
+	monitor.report();
 
 	return 0;
 }
