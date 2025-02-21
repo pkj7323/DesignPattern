@@ -1,7 +1,21 @@
 #include <iostream>
 #include <list>
 
-class Quackable
+class QuackObservalble;
+
+class Observer
+{
+public:
+	virtual void update(QuackObservalble* duck) = 0;
+};
+class QuackObservalble
+{
+public:
+	virtual void registerObserver(Observer* observer) = 0;
+	virtual void notifyObserver() = 0;
+};
+
+class Quackable : public QuackObservalble
 {
 public:
 	virtual void quack() = 0;
