@@ -14,3 +14,11 @@ public:
 		std::cout << "²Ğ²Ğ" << std::endl;
 	}
 };
+class RedheadDuck : public Quackable
+{
+public:
+	void quack() override
+	{
+		std::cout << "²Ğ²Ğ" << std::endl;
+	}
+};
