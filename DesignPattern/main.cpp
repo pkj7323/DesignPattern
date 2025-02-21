@@ -1,4 +1,5 @@
 #include <iostream>
+#include <list>
 
 class Quackable
 {
@@ -126,7 +127,22 @@ public:
 		return new QuackCounter(new RubberDuck);
 	}
 };
-
+class Flock : public Quackable
+{
+	std::list<Quackable*> quackers;
+public:
+	void add(Quackable* duck)
+	{
+		quackers.emplace_back(duck);
+	}
+	void quack() override
+	{
+		for (auto it = quackers.begin(); it != quackers.end(); ++it)
+		{
+			(*it)->quack();
+		}
+	}
+};
 
 
 
@@ -138,18 +154,30 @@ void Simulate(Quackable* duck)
 
 void Simulator(AbstractDuckFactory* duckFactory)
 {
-	Quackable* mallard = duckFactory->createMallardDuck();
 	Quackable* redhead = duckFactory->createRedheadDuck();
 	Quackable* call = duckFactory->createCallDuck();
 	Quackable* rubber = duckFactory->createRubberDuck();
-	Quackable* goose = new GooseAdapter(new Goose);
+	Quackable* gooseDuck = new GooseAdapter(new Goose);
 
+	Flock* duckFlocks = new Flock;
+	duckFlocks->add(redhead);
+	duckFlocks->add(call);
+	duckFlocks->add(rubber);
+	duckFlocks->add(gooseDuck);
 
-	Simulate(mallard);
-	Simulate(redhead);
-	Simulate(call);
-	Simulate(rubber);
-	Simulate(goose);
+	Flock* mallardFlocks = new Flock;
+
+	for (int i = 0; i < 4; i++)
+	{
+		mallardFlocks->add(duckFactory->createMallardDuck());//네마리의 물오리 무리를 만든다.
+	}
+
+	duckFlocks->add(mallardFlocks);//물오리르 전체 무리에 포함 시킨다.
+
+	std::cout << "물오리만 시뮬레이션" << std::endl;
+	Simulate(mallardFlocks);//물오리들만 시뮬레이션
+	std::cout << "전체오리 시뮬레이션" << std::endl;
+	Simulate(duckFlocks);//전체 오리 시뮬레이션
 
 	std::cout << QuackCounter::GetCount() << std::endl;
 }
