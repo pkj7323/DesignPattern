@@ -86,28 +86,28 @@ public:
 	virtual Quackable* createCallDuck() = 0;
 	virtual Quackable* createRubberDuck() = 0;
 };
-class DuckFactory : public AbstractDuckFactory
-{
-public:
-	Quackable* createMallardDuck() override
-	{
-		return new MallardDuck;
-	}
-	Quackable* createCallDuck() override
-	{
-		return new CallDuck;
-	}
-	Quackable* createRedheadDuck() override
-	{
-		return new RedheadDuck;
-	}
-	Quackable* createRubberDuck() override
-	{
-		return new RubberDuck;
-	}
-};
+//class DuckFactory : public AbstractDuckFactory
+//{//데코레이터 없는 팩토리 패턴
+//public:
+//	Quackable* createMallardDuck() override
+//	{
+//		return new MallardDuck;
+//	}
+//	Quackable* createCallDuck() override
+//	{
+//		return new CallDuck;
+//	}
+//	Quackable* createRedheadDuck() override
+//	{
+//		return new RedheadDuck;
+//	}
+//	Quackable* createRubberDuck() override
+//	{
+//		return new RubberDuck;
+//	}
+//};
 class CounterDuckFactory : public AbstractDuckFactory
-{
+{//데코레이션 카운터가 있는 팩토리 패턴
 public:
 	Quackable* createMallardDuck() override
 	{
@@ -130,20 +130,21 @@ public:
 
 
 
+
 void Simulate(Quackable* duck)
 {
 	duck->quack();
 }
 
-int main()
+void Simulator(AbstractDuckFactory* duckFactory)
 {
-	Quackable* mallard = new QuackCounter(new MallardDuck());
-	Quackable* redhead = new QuackCounter(new RedheadDuck());
-	Quackable* call = new QuackCounter(new CallDuck());
-	Quackable* rubber = new QuackCounter(new RubberDuck());
+	Quackable* mallard = duckFactory->createMallardDuck();
+	Quackable* redhead = duckFactory->createRedheadDuck();
+	Quackable* call = duckFactory->createCallDuck();
+	Quackable* rubber = duckFactory->createRubberDuck();
 	Quackable* goose = new GooseAdapter(new Goose);
 
-	
+
 	Simulate(mallard);
 	Simulate(redhead);
 	Simulate(call);
@@ -151,5 +152,13 @@ int main()
 	Simulate(goose);
 
 	std::cout << QuackCounter::GetCount() << std::endl;
+}
+
+
+
+int main()
+{
+	AbstractDuckFactory* duck_factory = new CounterDuckFactory;
+	Simulator(duck_factory);
 	return 0;
 }
