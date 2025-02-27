@@ -50,8 +50,8 @@ LRESULT DJView::WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	{
 		switch (message)
 		{
-		case WM_KEYDOWN:
-			if (wParam == VK_RETURN)
+		case WM_COMMAND:
+			if (HIWORD(wParam) == EN_UPDATE)
 			{
 				view->processInput();
 			}
@@ -67,20 +67,23 @@ LRESULT DJView::WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 void DJView::displayBPM()
 {
+	InvalidateRect(hWnd, NULL, false);
 	int bpm = model->getBPM();
-	std::cout << "Current BPM: " << bpm << std::endl;
+	std::wstring bpmStr = L"Current BPM: " + std::to_wstring(bpm);
+	SetWindowText(hWnd, bpmStr.c_str());
 }
 
 
 void DJView::processInput()
 {
-	int bpm;
-	
-	std::cout << "Enter new BPM (or -1 to quit): ";
-	std::cin >> bpm;
+	wchar_t buffer[256];
+	GetWindowText(hEdit, buffer, 256);
+	int bpm = _wtoi(buffer);
+
 	if (bpm == -1)
 	{
 		controller->stop();
+		PostQuitMessage(-1);
 		return;
 	}
 	controller->setBPM(bpm);
@@ -89,7 +92,7 @@ void DJView::processInput()
 
 void DJView::createWindow()
 {
-	const wchar_t CLASS_NAME[] = L"DJViewWindowClass";
+	constexpr wchar_t CLASS_NAME[] = L"DJViewWindowClass";
 
 	WNDCLASS wc = {};
 	wc.lpfnWndProc = WndProc;
@@ -114,6 +117,18 @@ void DJView::createWindow()
 		std::cerr << "Failed to create window" << std::endl;
 		return;
 	}
+
+	hEdit = CreateWindowEx(
+		0,
+		L"EDIT",
+		nullptr,
+		WS_CHILD | WS_VISIBLE | WS_BORDER | ES_LEFT,
+		10, 10, 200, 20,
+		hWnd,
+		nullptr,
+		GetModuleHandle(nullptr),
+		nullptr
+	);
 
 	ShowWindow(hWnd, SW_SHOW);
 }

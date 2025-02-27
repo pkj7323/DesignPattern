@@ -9,6 +9,7 @@ class DJView : public BeatObserver, public BPMObserver
 	std::shared_ptr<ControllerInterface> controller;
 	std::shared_ptr<BeatModelInterface> model;
 	HWND hWnd;
+	HWND hEdit;
 public:
 	DJView(std::shared_ptr<ControllerInterface> controller, std::shared_ptr<BeatModelInterface> model);
 	~DJView();

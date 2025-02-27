@@ -4,7 +4,7 @@
 BeatModel::BeatModel()
 : bpm(90), m_run(false), system(nullptr), sound(nullptr), channel(nullptr), result(FMOD_OK)
 {
-	path = "../res/Drum.mp3";
+	path = "../res/relaxing-guitar-loop.mp3";
 }
 
 BeatModel::~BeatModel()
@@ -52,17 +52,7 @@ void BeatModel::off()
 
 void BeatModel::run()
 {
-	playBeat();
-	while (m_run)
-	{
-		updateBeat();
-		notifyBeatObserver();
-	}
-	if (!m_run)
-	{
-		stopBeat();
-		quit();
-	}
+	//적중안됨
 }
 
 void BeatModel::quit()
@@ -180,6 +170,6 @@ void BeatModel::stopBeat()
 {
 	if (channel)
 	{
-		channel->stop();
+		channel->setPaused(true);
 	}
 }
